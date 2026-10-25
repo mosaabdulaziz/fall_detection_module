@@ -1,0 +1,32 @@
+# Fall Detection Pipeline — Core Dependencies
+# Python >= 3.10 required (tested on 3.10–3.12; 3.14 may require --pre torch)
+#
+# Install: .venv\Scripts\python.exe -m pip install -r requirements.txt
+
+# ── Pose detection & tracking ─────────────────────────────────────────────────
+ultralytics>=8.4.0          # yolo26x-pose.pt + ByteTrack; AGPL-3.0
+lapx>=0.5.5                 # linear assignment solver required by ByteTrack
+
+# ── Deep learning ─────────────────────────────────────────────────────────────
+torch>=2.0                  # Two-Stream ST-GCN; must match CUDA if GPU used
+# torchvision is pulled in by ultralytics; no explicit pin needed here
+
+# ── OpenMMLab MMAction2 & ST-GCN ──────────────────────────────────────────────
+mmengine>=0.10.0
+mmcv-lite>=2.1.0
+mmaction2>=1.2.0
+importlib-metadata>=8.0
+
+# ── Numerical / data ─────────────────────────────────────────────────────────
+numpy>=1.24
+pandas>=2.0
+
+# ── Computer vision ───────────────────────────────────────────────────────────
+opencv-python>=4.8
+
+# ── Config ────────────────────────────────────────────────────────────────────
+pyyaml>=6.0
+
+# ── Testing ───────────────────────────────────────────────────────────────────
+pytest>=8.0
+pytest-timeout>=2.3         # guard against hung model downloads in CI
