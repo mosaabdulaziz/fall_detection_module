@@ -1,0 +1,131 @@
+# ==============================================================================
+# Python & Bytecode
+# ==============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.pyd
+
+# ==============================================================================
+# Environments & Package Managers
+# ==============================================================================
+.venv/
+venv/
+ENV/
+env/
+.pip_cache/
+pip-wheel-metadata/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# ==============================================================================
+# Model Weights & Large Checkpoints
+# ==============================================================================
+# Large pretrained & fine-tuned model checkpoints (YOLO, MMAction2, PySKL, etc.)
+weights/*.pt
+weights/*.pth
+weights/*.bin
+weights/*.safetensors
+weights/*.onnx
+weights/*.engine
+weights/*.pkl
+weights/*.tar*
+*.pt
+*.pth
+*.onnx
+*.engine
+*.safetensors
+Models/
+!weights/.gitkeep
+
+# ==============================================================================
+# Datasets & Media
+# ==============================================================================
+# Le2i video datasets and raw video clips
+data/
+*.mp4
+*.avi
+*.mkv
+*.mov
+*.flv
+*.webm
+*.wmv
+
+# Dataset archives
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+
+# Retain metadata manifests
+!data/manifest.csv
+!data/manifest_sample.csv
+!data/manifest_urfd.csv
+
+# ==============================================================================
+# Cache & Temporary Directories
+# ==============================================================================
+.torch_cache/
+.ultralytics/
+.tmp/
+tmp/
+temp/
+.cache/
+.licenses/
+
+# ==============================================================================
+# Benchmark Runs & Evaluation Outputs
+# ==============================================================================
+benchmark_results/
+benchmark_results_*/
+benchmark_sample_results/
+scripts/
+reports/
+*.jsonl
+*.log
+
+# ==============================================================================
+# Testing & Code Quality
+# ==============================================================================
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# ==============================================================================
+# IDEs & Editor Configuration
+# ==============================================================================
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+
+# ==============================================================================
+# Operating System Artifacts
+# ==============================================================================
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
