@@ -1,0 +1,195 @@
+# Fall Detection Pipeline Master Configuration
+# Sole Source of Truth: All thresholds, geometric gates, temporal windows, and action mappings.
+# Copied directly from active codebase logic to lock in the verified system state.
+
+video:
+  default_width: 320
+  default_height: 240
+  target_fps: 25.0
+
+detector:
+  model_name: "weights/yolo26x-pose.pt"
+  conf_det: 0.25
+  tracker: "bytetrack.yaml"
+  imgsz: 640
+  stride: 1
+  streams:
+    - "j"
+    - "jm"
+
+sampling:
+  conf_kp: 0.30
+  smooth_s: 0.40
+  buffer_s: 30.0
+  eval_every_s: 0.50
+  ref_scale_min: 0.20
+  ref_scale_max: 5.00
+  ref_scale_max_growth: 1.15
+  ref_scale_max_history: 1500
+  ref_scale_rolling_s: 10.0
+  motion_smooth_s: 1.0
+  probs_hist_retention_s: 1.0
+  min_track_observations: 3
+  dt_min: 0.001
+
+windowing:
+  primary_window_s: 2.50
+  secondary_window_s: 1.25
+  min_window_s: 1.16
+  clip_len: 100
+  resample_fps: 25.0
+  num_person: 2
+  max_gap_s: 1.0
+  min_observations_for_resample: 6
+
+normalization:
+  mode: "prenormalize2d"
+  reference_w: 1280
+  reference_h: 720
+  track_compact_scale_factor: 1.25
+
+action_classes:
+  names:
+    - "Standing"
+    - "Walking"
+    - "Sitting"
+    - "Lying"
+    - "StandUp"
+    - "SitDown"
+    - "Fall"
+    - "Instability"
+  projection:
+    fall_sources: [42]              # NTU-60 A43 (falling)
+    instability_sources: [41]       # NTU-60 A42 (staggering)
+    sitdown_sources: [5, 7, 15, 16] # A6, A8, A16, A17
+    standup_sources: [8]            # A9
+    walking_sources: [25, 26, 58, 59] # A26, A27, A59, A60 (A42 excluded!)
+    sitting_sources: [10, 11, 28, 29] # A11, A12, A29, A30
+    upright_action_indices: [0, 1, 2, 4, 5]
+
+kinematic_veto:
+  controlled_bend:
+    max_angle: 45.0
+    max_aspect: 0.85
+    min_head_rel: 0.30
+    max_vdown: 0.30
+  controlled_knee:
+    min_knee_angle: 70.0
+    max_knee_angle: 110.0
+    max_angle: 45.0
+    max_aspect: 0.85
+    min_hip_rel: 0.35
+  upright_posture:
+    max_angle: 45.0
+    max_aspect: 0.85
+    min_head_rel: 0.20
+
+fall:
+  drop: 0.14
+  vdown: 0.16
+  window_s: 2.50
+  post_s: 3.00
+  low_hip: 0.35
+  angle: 40.0
+  aspect: 0.90
+  head_low: 0.0
+  hold_s: 1.00
+  stable_s: 0.50
+  max_motion: 1.80
+  min_action_score: 0.30
+  num_frames: 100
+
+path_a:
+  min_action_score: 0.30
+  min_drop: 0.08
+  min_vdown: 0.12
+  trigger_angle: 40.0
+  trigger_aspect: 0.85
+  trigger_low_hip: 0.35
+
+path_b:
+  drop: 0.14
+  vdown: 0.16
+  low_hip: 0.35
+  angle: 40.0
+  aspect: 0.90
+  head_low: 0.0
+  support_fall_score: 0.15
+  combined_support_score: 0.25
+  support_instability_score: 0.35
+
+path_c:
+  drop: 0.14
+  vdown: 0.16
+  low_hip: 0.32
+  angle: 45.0
+  aspect: 1.05
+  head_low: 0.0
+
+post_fall_confirmation:
+  post_s: 3.00
+  hold_s: 1.00
+  stable_s: 0.50
+  max_motion: 1.80
+  chair_rejection:
+    max_angle: 20.0
+    max_aspect: 0.70
+  # Posture mode 1: Standard horizontal recumbence
+  std_low_hip: 0.35
+  std_angle: 40.0
+  std_aspect: 0.90
+  # Posture mode 2: Floor-seated or curled collapse
+  floor_low_hip: 0.28
+  floor_min_drop: 0.10
+  floor_angle: 20.0
+  floor_aspect: 0.85
+  floor_head_low: 0.12
+  # Posture mode 3: Low-seated or sofa/bed slump
+  sofa_low_hip: 0.40
+  sofa_min_drop: 0.14
+  sofa_angle: 35.0
+  sofa_aspect: 0.90
+
+lying:
+  angle_in: 35.0
+  angle_out: 20.0
+  aspect_in: 0.50
+  aspect_out: 0.30
+  aspect_in_nan_mult: 1.3
+  T_lying: 2.0
+  hold_s: 1.0
+  max_motion: 1.0
+
+immobility:
+  win_s: 10.0
+  disp_thresh: 0.035
+  min_valid_frames: 3
+  T_immobile_post_fall: 40.0
+  T_immobile_lying: 100.0
+  T_immobile_seated: 150.0
+  post_fall_recovery:
+    min_hip: 0.40
+    max_angle: 35.0
+    active_motion_clear: 1.20
+    active_hip_clear: 0.35
+  lying_posture:
+    min_angle: 45.0
+    min_aspect: 1.0
+    min_angle_relaxed: 30.0
+  seated_posture:
+    min_knee_angle: 60.0
+    max_knee_angle: 120.0
+    min_prob_sit: 0.30
+    max_angle: 35.0
+    max_aspect: 0.95
+
+event_lifecycle:
+  allow_immediate_recovery: true
+  recovery_max_angle: 30.0
+  recovery_min_hip: 0.45
+  recovery_stable_s: 0.50
+  cooldown_s: 5.0
+  realert_s: 60.0
+  stitch_s: 3.0
+  stitch_max_dist_ref_scale: 0.8
+  purge_lost_tracks_s: 10.0
