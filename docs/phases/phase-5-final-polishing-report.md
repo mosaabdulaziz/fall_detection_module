@@ -3,7 +3,7 @@
 **Project**: Pose-Based Human Fall, Persistent Lying, and Immobility Detection Pipeline  
 **Date**: October 25, 2026  
 **Status**: **FINAL POLISHING COMPLETE — SYSTEM DECOUPLED & VERIFIED**  
-**Workspace**: `F:\fall_detection\` (`STORAGE-1` fully enforced)
+**Storage**: `STORAGE-1` fully enforced (zero files/weights on system drive C:)
 
 ---
 
@@ -13,25 +13,25 @@ Following the adversarial audit and initial deployment benchmarks, this phase pe
 1. **Classifier Action Confusion ($P(\text{Fall})$ Suppression)**: Resolving NTU-60 class A42 (`staggering`) contamination.
 2. **Post-Fall Confirmation Rejections (`latched_no_confirm`)**: Aligning kinematic trigger gates with realistic post-impact recumbent postures (floor-curled collapses and sofa/bed slumps).
 
-All system configurations, video processing dimensions, sampling rates, thresholds, and semantic mappings have been moved into a standalone master configuration file ([`config.yaml`](file:///F:/fall_detection/config.yaml)), eliminating hardcoded numbers from source code.
+All system configurations, video processing dimensions, sampling rates, thresholds, and semantic mappings have been moved into a standalone master configuration file ([`config.yaml`](../../config.yaml)), eliminating hardcoded numbers from source code.
 
 ---
 
 ## 2. Key Diagnostic Findings & Architectural Changes
 
 ### 2.1 Action A42 (`staggering`) Separation
-- **Diagnostic Finding**: Evaluated across 2,172 frames on all 190 Le2i videos using [`scripts/evaluate_a42_separation.py`](file:///F:/fall_detection/scripts/evaluate_a42_separation.py).
+- **Diagnostic Finding**: Evaluated across 2,172 frames on all 190 Le2i videos using [`scripts/evaluate_a42_separation.py`](../../scripts/evaluate_a42_separation.py).
   - $P(\text{A43})$ (`falling`): AUROC = **0.8858** (high separation).
   - $P(\text{A42})$ (`staggering`): AUROC = **0.6444** with 95th percentile = **0.7784** and max = **0.9983** during normal walking due to low-resolution ($320 \times 240$) keypoint noise.
   - Directly remapping A42 into Fall degraded overall AUROC to **0.8479** and generated severe false alarms.
-- **Architectural Solution**: Implemented an 8-class semantic taxonomy (`ActionClass` in [`src/tsstg_model.py`](file:///F:/fall_detection/src/tsstg_model.py)). A42 is mapped exclusively to class 7 (`Instability`). It is completely excluded from `Walking` (class 1) and cannot trigger Path A falls alone, but provides calibrated soft support in Path B.
+- **Architectural Solution**: Implemented an 8-class semantic taxonomy (`ActionClass` in [`src/tsstg_model.py`](../../src/tsstg_model.py)). A42 is mapped exclusively to class 7 (`Instability`). It is completely excluded from `Walking` (class 1) and cannot trigger Path A falls alone, but provides calibrated soft support in Path B.
 
 ### 2.2 Post-Fall Confirmation Posture Geometry
-- **Diagnostic Finding**: Geometric inspection of all 15 `latched_no_confirm` misses ([`scripts/inspect_latched_cases.py`](file:///F:/fall_detection/scripts/inspect_latched_cases.py)) revealed:
+- **Diagnostic Finding**: Geometric inspection of all 15 `latched_no_confirm` misses ([`scripts/inspect_latched_cases.py`](../../scripts/inspect_latched_cases.py)) revealed:
   - 5 cases ended slumped on low furniture with $\text{hip}_{\text{rel}} \in [0.30, 0.40]$ and large vertical drop ($\ge 0.14$).
   - 6 cases were curled or seated flat on the floor with trunk angle $< 30^\circ$, failing the rigid horizontal recumbence test ($\theta \ge 40^\circ$).
   - Post-impact limb twitching and adjustment exceeded the previous strict motion cap ($1.00$).
-- **Architectural Solution**: Implemented multi-mode posture confirmation in [`src/fall_monitor.py`](file:///F:/fall_detection/src/fall_monitor.py):
+- **Architectural Solution**: Implemented multi-mode posture confirmation in [`src/fall_monitor.py`](../../src/fall_monitor.py):
   1. *Standard Recumbence*: $\text{hip}_{\text{rel}} \le 0.35 \land (\theta \ge 40^\circ \lor \text{aspect} \ge 0.90)$
   2. *Floor-Curled / Seated*: $\text{hip}_{\text{rel}} \le 0.28 \land \text{drop} \ge 0.10 \land (\theta \ge 20^\circ \lor \text{aspect} \ge 0.85 \lor \text{head}_{\text{rel}} \le 0.12)$
   3. *Sofa / Bed Slump*: $\text{hip}_{\text{rel}} \le 0.40 \land \text{drop} \ge 0.14 \land (\theta \ge 35^\circ \lor \text{aspect} \ge 0.90)$
@@ -60,9 +60,9 @@ All system configurations, video processing dimensions, sampling rates, threshol
 | `sampling.eval_every_s` | `0.50` | Evaluation stride |
 | `windowing.primary_window_s` | `2.50` | ST-GCN primary temporal window |
 | `windowing.secondary_window_s` | `1.25` | ST-GCN secondary temporal window |
-| `windowing.min_window_s` | `1.00` | Minimum track history for ST-GCN inference |
+| `windowing.min_window_s` | `1.16` | Minimum track history for ST-GCN inference |
 | `windowing.clip_len` | `100` | Resampled frame count for model tensor |
-| `normalization.mode` | `track_compact` | Bounding-box scale normalization |
+| `normalization.mode` | `prenormalize2d` | Scene-relative coordinate normalization |
 | `path_a.min_action_score` | `0.30` | Path A $P(\text{Fall})$ threshold |
 | `path_a.min_drop` | `0.08` | Path A minimal hip drop |
 | `path_a.min_vdown` | `0.12` | Path A minimal downward velocity |
@@ -100,20 +100,20 @@ All system configurations, video processing dimensions, sampling rates, threshol
 | **Recovered Target Misses** | 0 / 34 | **22 / 34 (64.7%)** | 15 / 34 (44.1%) |
 
 ### 4.2 Automated Unit & Regression Test Suite
-- Test Command: `F:\fall_detection\.venv\Scripts\python.exe -m pytest tests/ -v`
+- Test Command: `python -m pytest tests/ -v`
 - Total Test Cases: **53 passing tests across 8 test modules** (0 failures, 0 errors, 100% pass rate).
 - Key verification suites:
-  1. [`tests/test_phase1_improvements.py`](file:///F:/fall_detection/tests/test_phase1_improvements.py): Verifies 8-class taxonomy mapping, index safety, multi-mode posture confirmation, and two-tier event emissions (`fall` vs `fall_recovered`).
-  2. [`tests/test_config_source_of_truth.py`](file:///F:/fall_detection/tests/test_config_source_of_truth.py): Comprehensive source-of-truth verification proving that `config.yaml` is the sole source of truth for all thresholds and numbers in the system. Demonstrates via in-memory perturbation that modifying config values directly shifts system decision boundaries across sampling, windowing, projection mapping, Path A latching, kinematic vetoes, confirmation gates, lying duration, immobility thresholds, and event cooldown.
+  1. [`tests/test_phase1_improvements.py`](../../tests/test_phase1_improvements.py): Verifies 8-class taxonomy mapping, index safety, multi-mode posture confirmation, and two-tier event emissions (`fall` vs `fall_recovered`).
+  2. [`tests/test_config_source_of_truth.py`](../../tests/test_config_source_of_truth.py): Comprehensive source-of-truth verification proving that `config.yaml` is the sole source of truth for all thresholds and numbers in the system. Demonstrates via in-memory perturbation that modifying config values directly shifts system decision boundaries across sampling, windowing, projection mapping, Path A latching, kinematic vetoes, confirmation gates, lying duration, immobility thresholds, and event cooldown.
 
 ---
 
 ## 5. Demonstration Artifacts Deliverables
 
 Three universally-playable H.264 demonstration videos were generated with live telemetry HUDs:
-1. [`data/demos/demo_fall.mp4`](file:///F:/fall_detection/data/demos/demo_fall.mp4) (`0.66 MB`): Walking $\to$ trip impact $\to$ `CRITICAL: FALL DETECTED`.
-2. [`data/demos/demo_lying.mp4`](file:///F:/fall_detection/data/demos/demo_lying.mp4) (`1.59 MB`): Controlled lie-down $\to$ `MONITOR: LYING ON FLOOR`.
-3. [`data/demos/demo_immobility.mp4`](file:///F:/fall_detection/data/demos/demo_immobility.mp4) (`0.94 MB`): Fall impact at $t=4.24\text{s} \to$ lying posture at $t=5.80\text{s} \to$ persistent motionless state $\to$ `EMERGENCY: POST-FALL IMMOBILE`.
+1. [`data/demos/demo_fall.mp4`](../../data/demos/demo_fall.mp4) (`0.66 MB`): Walking $\to$ trip impact $\to$ `CRITICAL: FALL DETECTED`.
+2. [`data/demos/demo_lying.mp4`](../../data/demos/demo_lying.mp4) (`1.59 MB`): Controlled lie-down $\to$ `MONITOR: LYING ON FLOOR`.
+3. [`data/demos/demo_immobility.mp4`](../../data/demos/demo_immobility.mp4) (`0.94 MB`): Fall impact at $t=4.24\text{s} \to$ lying posture at $t=5.80\text{s} \to$ persistent motionless state $\to$ `EMERGENCY: POST-FALL IMMOBILE`.
 
 ---
 

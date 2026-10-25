@@ -61,7 +61,7 @@ The system processes standard video streams (RGB, default $320 \times 240$ or $6
 ## 2. Core Innovations & Mathematical Formulations
 
 ### 2.1 Decoupled Single Source of Truth
-All thresholds, physical limits, video dimensions, sampling rates, and semantic mappings are strictly decoupled into [`config.yaml`](file:///F:/fall_detection/config.yaml). The codebase contains zero hardcoded magic numbers, and modifying [`config.yaml`](file:///F:/fall_detection/config.yaml) dynamically controls system decision boundaries.
+All thresholds, physical limits, video dimensions, sampling rates, and semantic mappings are strictly decoupled into [`config.yaml`](config.yaml). The codebase contains zero hardcoded magic numbers, and modifying [`config.yaml`](config.yaml) dynamically controls system decision boundaries.
 
 ### 2.2 8-Class Semantic Action Taxonomy (`ActionClass`)
 To eliminate false alarms caused by normal walking keypoint jitter at low resolution, NTU-RGB+D action classes are partitioned into an 8-class semantic space:
@@ -118,7 +118,7 @@ where $S_{\text{ref}}$ is the clamped bounding-box diagonal. If $\text{disp\_win
 
 ## 3. Master Tuned Configuration Reference
 
-All system parameters are defined in [`config.yaml`](file:///F:/fall_detection/config.yaml):
+All system parameters are defined in [`config.yaml`](config.yaml):
 
 | Section | Parameter | Tuned Value | Unit / Range | Clinical Description |
 | :--- | :--- | :--- | :--- | :--- |
@@ -301,7 +301,7 @@ Run real-time inference on a local video file, USB webcam, or network RTSP camer
 
 ```powershell
 # Live RTSP camera stream with live preview and event logging
-F:\fall_detection\.venv\Scripts\python.exe src/fall_monitor.py `
+python src/fall_monitor.py `
     --source "rtsp://192.168.1.100:554/stream1" `
     --config config.yaml `
     --model weights/yolo26x-pose.pt `
@@ -311,7 +311,7 @@ F:\fall_detection\.venv\Scripts\python.exe src/fall_monitor.py `
     --evidence-dir logs/snapshots/
 
 # Process recorded video file and save annotated MP4
-F:\fall_detection\.venv\Scripts\python.exe src/fall_monitor.py `
+python src/fall_monitor.py `
     --source "data/videos/le2i/Home_01/video (1).avi" `
     --config config.yaml `
     --save output_annotated.mp4 `
@@ -342,7 +342,7 @@ F:\fall_detection\.venv\Scripts\python.exe src/fall_monitor.py `
 Run standardized evaluations across labeled datasets (Le2i, URFD, OmniFall) with IoU tracking and tolerance windows:
 
 ```powershell
-F:\fall_detection\.venv\Scripts\python.exe src/evaluate_benchmark.py `
+python src/evaluate_benchmark.py `
     --manifest data/manifest.csv `
     --model weights/yolo26x-pose.pt `
     --tracker bytetrack.yaml `
@@ -363,7 +363,7 @@ Translate human-annotated OmniFall labels (16-class taxonomy) into standard pipe
 
 ```powershell
 # Build evaluation manifest from OmniFall Le2i annotations
-F:\fall_detection\.venv\Scripts\python.exe src/omnifall_adapter.py `
+python src/omnifall_adapter.py `
     --omnifall-dir external/omnifall/ `
     --video-root data/videos/le2i/ `
     --output-dir data/ `
@@ -394,13 +394,13 @@ Evaluated against the Le2i Fall Detection Dataset (190 annotated videos across 4
 
 ## 6. Demonstration Deliverables
 
-Pre-rendered demonstration videos showcasing real-time telemetry HUDs, skeleton overlays, and clinical event badges are located in [`data/demos/`](file:///F:/fall_detection/data/demos/):
+Pre-rendered demonstration videos showcasing real-time telemetry HUDs, skeleton overlays, and clinical event badges are located in [`data/demos/`](data/demos/):
 
-* **[`demo_fall.mp4`](file:///F:/fall_detection/data/demos/demo_fall.mp4)** (`0.66 MB`, 160 frames, H.264):  
+* **[`demo_fall.mp4`](data/demos/demo_fall.mp4)** (`0.66 MB`, 160 frames, H.264):  
   Demonstrates rapid transition from normal walking $\to$ sudden kinematic collapse $\to$ `CRITICAL: FALL DETECTED`.
-* **[`demo_lying.mp4`](file:///F:/fall_detection/data/demos/demo_lying.mp4)** (`1.59 MB`, 300 frames, H.264):  
+* **[`demo_lying.mp4`](data/demos/demo_lying.mp4)** (`1.59 MB`, 300 frames, H.264):  
   Demonstrates controlled intentional transition to the floor without high velocity $\to$ `MONITOR: LYING ON FLOOR` after $T_{\text{lying}}$ expires.
-* **[`demo_immobility.mp4`](file:///F:/fall_detection/data/demos/demo_immobility.mp4)** (`0.94 MB`, 231 frames, H.264):  
+* **[`demo_immobility.mp4`](data/demos/demo_immobility.mp4)** (`0.94 MB`, 231 frames, H.264):  
   Demonstrates fall impact at $t=4.24\text{s} \to$ floor recumbence at $t=5.80\text{s} \to$ sustained lack of excursion triggering `EMERGENCY: POST-FALL IMMOBILE`.
 
 ---
@@ -408,7 +408,7 @@ Pre-rendered demonstration videos showcasing real-time telemetry HUDs, skeleton 
 ## 7. Directory Structure
 
 ```
-F:\fall_detection\
+fall_detection/
 ├── config.yaml                     # Master decoupled configuration (sole source of truth)
 ├── README.md                       # Comprehensive system and interface documentation
 ├── requirements.txt                # Pinned dependencies
@@ -454,27 +454,27 @@ F:\fall_detection\
 
 ## 8. Quickstart & Verification Commands
 
-All commands execute in the dedicated Python virtual environment located at `F:\fall_detection\.venv`:
+All commands can be executed using your active virtual environment (`python` / `.venv`):
 
 ```powershell
 # 1. Run the entire automated test suite (53/53 tests pass)
-F:\fall_detection\.venv\Scripts\python.exe -m pytest tests/ -v
+python -m pytest tests/ -v
 
 # 2. Run source-of-truth verification tests exclusively
-F:\fall_detection\.venv\Scripts\python.exe -m pytest tests/test_config_source_of_truth.py -v
+python -m pytest tests/test_config_source_of_truth.py -v
 
 # 3. Run real-time detection on a video file with annotated output
-F:\fall_detection\.venv\Scripts\python.exe src/fall_monitor.py `
+python src/fall_monitor.py `
     --source "data/videos/le2i/Home_01/video (1).avi" `
     --config config.yaml `
     --save data/demos/output_test.mp4 `
     --stride 2
 
 # 4. Run full benchmark evaluation across dataset manifest
-F:\fall_detection\.venv\Scripts\python.exe src/evaluate_benchmark.py `
+python src/evaluate_benchmark.py `
     --manifest data/manifest.csv `
     --output-dir benchmark_results/
 
 # 5. Re-render all demonstration videos (Fall, Lying, Immobility)
-F:\fall_detection\.venv\Scripts\python.exe scripts/generate_all_demos.py --only all
+python scripts/generate_all_demos.py --only all
 ```
